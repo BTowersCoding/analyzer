@@ -1,0 +1,13 @@
+resources/sublist/*/test/
+.cpcache/
+.clj-kondo/
+.lsp/
+.calva/
+.nrepl-port
+resources/armstrong_numbers/*/project.clj
+*expected-representation.txt
+resources/armstrong_numbers/*/deps.edn
+resources/sublist/*/project.clj
+resources/sublist/*/.meta/
+resources/sublist/*/deps.edn
+resources/sublist/*/src/sublist_test.clj
