@@ -5,6 +5,7 @@
             [clojure.core.memoize :refer [memo-clear! lru]]
             [analyzer.passes.source-info :refer [source-info]]
             [analyzer.passes.warn-on-reflection :refer [warn-on-reflection]]
+            [analyzer.passes.elide-meta :refer [elide-meta elides]]
             [analyzer.passes.warn-earmuff :refer [warn-earmuff]]
             [analyzer.uniquify :refer [uniquify-locals]])
   (:import (clojure.lang IObj RT Compiler Var Symbol IPersistentVector IPersistentMap IPersistentSet ISeq IType IRecord)))
