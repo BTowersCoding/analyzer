@@ -1,20 +1,13 @@
 (ns analyzer.analyzer
-  (:refer-clojure :exclude [ensure]))
+  (:require [analyzer.utils :as u]
+            [analyzer.env :as env :refer [*env*]]))
 
 (deftype ExceptionThrown [e ast])
 
 (defn ^:private throw! [e]
   (throw (.e ^ExceptionThrown e)))
 
-(def ^:dynamic *env*
-  "Global env atom containing a map.
-   Required options:
-    * :namespaces a map from namespace symbol to namespace map,
-      the namespace map contains at least the following keys:
-     ** :mappings a map of mappings of the namespace, symbol to var/class
-     ** :aliases a map of the aliases of the namespace, symbol to symbol
-     ** :ns a symbol representing the namespace"
-  nil)
+
 
 (defn empty-env
   "Returns an empty env map"
@@ -38,25 +31,12 @@
          :update-ns-map! (fn update-ns-map! []
                            (swap! *env* assoc-in [:namespaces] (build-ns-map)))}))
 
-;; if *env* is not bound, bind it to env
-(defmacro ensure
-  "If *env* is not bound it binds it to env before executing the body"
-  [env & body]
-  `(if *env*
-     (do ~@body)
-     (with-env ~env
-       ~@body)))
 
-(defn deref-env
-  "Returns the value of the current global env if bound, otherwise
-   throws an exception."
-  []
-  (if *env*
-    @*env*
-    (throw (Exception. "global env not bound"))))
+
+
 
 (defn update-ns-map! []
-  ((get (deref-env) :update-ns-map! #())))
+  ((get (env/deref-env) :update-ns-map! #())))
 
 
 (defn analyze+eval
@@ -79,9 +59,9 @@
   ([form env {:keys [handle-evaluation-exception]
               :or {handle-evaluation-exception throw!}
               :as opts}]
-   (ensure (global-env)
+   (env/ensure (global-env)
                (update-ns-map!)
-               (let [env (merge env (-source-info form env))
+               (let [env (merge env (u/-source-info form env))
                      [mform raw-forms] (with-bindings {Compiler/LOADER     (RT/makeClassLoader)
                                                        #'*ns*              (the-ns (:ns env))
                                                        #'ana/macroexpand-1 (get-in opts [:bindings #'ana/macroexpand-1] macroexpand-1)}
@@ -93,7 +73,7 @@
                                                                   (if-let [[op & r] (and (seq? form) form)]
                                                                     (if (or (u/macro? op  env)
                                                                             (u/inline? op r env))
-                                                                      (vary-meta form assoc ::ana/resolved-op (resolve-sym op env))
+                                                                      (vary-meta form assoc ::ana/resolved-op (u/resolve-sym op env))
                                                                       form)
                                                                     form)))))))]
                  (if (and (seq? mform) (= 'do (first mform)) (next mform))
