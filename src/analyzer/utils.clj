@@ -41,6 +41,14 @@
         (let [name (if sym-ns (-> sym name symbol) sym)]
           (-> (env/deref-env) :namespaces (get (or full-ns ns)) :mappings (get name)))))))
 
+(defn dynamic?
+  "Returns true if the var is dynamic"
+  ([var] (dynamic? var nil))
+  ([var m]
+   (or (:dynamic (or m (meta var)))
+       (when (var? var) ;; workaround needed since Clojure doesn't always propagate :dynamic
+         (.isDynamic ^Var var)))))
+
 (defn merge'
   "Like merge, but uses transients"
   [m & mms]

@@ -3,7 +3,8 @@
             [analyzer.env :as env :refer [*env*]]
             [clojure.reflect :as reflect]
             [clojure.core.memoize :refer [memo-clear! lru]]
-            [analyzer.passes.warn-on-reflection :refer [warn-on-reflection]])
+            [analyzer.passes.warn-on-reflection :refer [warn-on-reflection]]
+            [analyzer.passes.warn-earmuff :refer [warn-earmuff]])
   (:import (clojure.lang IObj RT Compiler Var Symbol IPersistentVector IPersistentMap IPersistentSet ISeq IType IRecord)))
 
 (deftype ExceptionThrown [e ast])
@@ -520,22 +521,16 @@
   "Set of passes that will be run by default on the AST by #'run-passes"
   #{#'warn-on-reflection
     #'warn-earmuff
-
     #'uniquify-locals
-
     #'source-info
     #'elide-meta
     #'constant-lift
-
     #'trim
-
     #'box
-
     #'analyze-host-expr
     #'validate-loop-locals
     #'validate
     #'infer-tag
-
     #'classify-invoke})
 
 (def scheduled-default-passes
