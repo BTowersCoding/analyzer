@@ -1,5 +1,26 @@
 (ns analyzer.utils
-  (:require [analyzer.env :as env]))
+  (:require [analyzer.env :as env])
+  (:import (clojure.lang IRecord IType IObj
+                         IReference Var)))
+
+(defn obj?
+  "Returns true if x implements IObj"
+  [x]
+  (instance? IObj x))
+
+(defn ctx
+  "Returns a copy of the passed environment with :context set to ctx"
+  [env ctx]
+  (assoc env :context ctx))
+
+(defn dissoc-env
+  "Dissocs :env from the ast"
+  [ast]
+  (dissoc ast :env))
+
+(defmulti ^Class maybe-class
+  "Takes a Symbol, String or Class and tires to resolve to a matching Class"
+  class)
 
 (defn resolve-ns
   "Resolves the ns mapped by the given sym in the global env"
@@ -24,6 +45,10 @@
   "Like merge, but uses transients"
   [m & mms]
   (persistent! (reduce conj! (transient (or m {})) mms)))
+
+(def mmerge
+  "Same as (fn [m1 m2] (merge-with merge m2 m1))"
+  #(merge-with merge' %2 %1))
 
 (defn select-keys'
   "Like clojure.core/select-keys, but uses transients and doesn't preserve meta"
@@ -51,3 +76,14 @@
           (when-let [file (and (not= *file* "NO_SOURCE_FILE")
                                *file*)]
             {:file file})))
+
+(defn butlast+last
+  "Returns same value as (juxt butlast last), but slightly more
+   efficient since it only traverses the input sequence s once, not
+   twice."
+  [s]
+  (loop [butlast (transient [])
+         s s]
+    (if-let [xs (next s)]
+      (recur (conj! butlast (first s)) xs)
+      [(seq (persistent! butlast)) (first s)])))
