@@ -8,6 +8,28 @@
   [x]
   (instance? IObj x))
 
+(defn into!
+  "Like into, but for transients"
+  [to from]
+  (reduce conj! to from))
+
+(defn rseqv
+  "Same as (comp vec rseq)"
+  [v]
+  (vec (rseq v)))
+
+(defn mapv'
+  "Like mapv, but short-circuits on reduced"
+  [f v]
+  (let [c (count v)]
+    (loop [ret (transient []) i 0]
+      (if (> c i)
+        (let [val (f (nth v i))]
+          (if (reduced? val)
+            (reduced (persistent! (reduce conj! (conj! ret @val) (subvec v (inc i)))))
+            (recur (conj! ret val) (inc i))))
+        (persistent! ret)))))
+
 (defn ctx
   "Returns a copy of the passed environment with :context set to ctx"
   [env ctx]

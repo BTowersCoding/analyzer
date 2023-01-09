@@ -3,8 +3,10 @@
             [analyzer.env :as env :refer [*env*]]
             [clojure.reflect :as reflect]
             [clojure.core.memoize :refer [memo-clear! lru]]
+            [analyzer.passes.source-info :refer [source-info]]
             [analyzer.passes.warn-on-reflection :refer [warn-on-reflection]]
-            [analyzer.passes.warn-earmuff :refer [warn-earmuff]])
+            [analyzer.passes.warn-earmuff :refer [warn-earmuff]]
+            [analyzer.uniquify :refer [uniquify-locals]])
   (:import (clojure.lang IObj RT Compiler Var Symbol IPersistentVector IPersistentMap IPersistentSet ISeq IType IRecord)))
 
 (deftype ExceptionThrown [e ast])
